@@ -1,31 +1,21 @@
-import { NextRequest, NextResponse } from "next/server";
-import { jwtVerify } from "jose";
+import { NextResponse, NextRequest } from "next/server";
 
 // Middleware
 export const middleware = async (req: NextRequest) => {
   try {
-    if (req.nextUrl.pathname === "/login") {
-      const token = req.cookies.get("token");
-
-      if (!token) {
-        return NextResponse.next();
-      }
-
-      const secretKey = new TextEncoder().encode(process.env.JWT_SECRET);
-
-      const { payload } = await jwtVerify(token.value, secretKey, {
-        algorithms: ["HS256"],
+    if (req.nextUrl.pathname.startsWith("/admin")) {
+      const response = await fetch("/api/auth/me", {
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
-
-      const user = (payload as { user: { role: string } }).user;
-
-      if (user.role === "admin") {
-        return NextResponse.redirect(new URL("/admin", req.nextUrl));
-      } else {
-        return NextResponse.redirect(new URL("/", req.nextUrl));
+      const data = await response.json();
+      if (data.user.role !== "admin") {
+        return NextResponse.redirect(new URL("/login", req.url));
       }
     }
   } catch (error) {
-    console.error(error);
+    console.log(error);
+    return NextResponse.redirect(new URL("/login", req.url));
   }
 };

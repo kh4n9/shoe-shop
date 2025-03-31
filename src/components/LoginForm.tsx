@@ -26,17 +26,17 @@ const LoginForm = () => {
         },
         body: JSON.stringify(formData),
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Đăng nhập thất bại");
+      const payload = await response.json();
+      const redirectTo = payload?.redirectTo;
+      if (redirectTo) {
+        router.push(redirectTo);
       }
-
-      router.push("/");
-      router.refresh();
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "Đã xảy ra lỗi");
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Đã xảy ra lỗi, vui lòng thử lại sau"
+      );
     } finally {
       setIsLoading(false);
     }
@@ -104,12 +104,12 @@ const LoginForm = () => {
               </Link>
             </div>
             <div className="text-sm">
-              <a
-                href="#"
+              <Link
+                href="/forgot-password"
                 className="font-medium text-blue-600 hover:text-blue-500"
               >
                 Quên mật khẩu?
-              </a>
+              </Link>
             </div>
           </div>
 
