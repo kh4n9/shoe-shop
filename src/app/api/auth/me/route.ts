@@ -1,6 +1,5 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { jwtVerify } from "jose";
-import { cookies } from "next/headers";
 import User from "@/models/User";
 import { connectDB } from "@/lib/mongodb";
 
@@ -14,11 +13,10 @@ interface JWTPayload {
   };
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     await connectDB();
-    const cookieStore = await cookies();
-    const token = cookieStore.get("token");
+    const token = req.cookies.get("token");
     if (!token) {
       return NextResponse.json({ user: null }, { status: 401 });
     }

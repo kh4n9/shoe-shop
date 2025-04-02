@@ -54,8 +54,7 @@ export const POST = async (req: NextRequest) => {
 
     const response = NextResponse.json({
       success: true,
-      user: payload.user,
-      redirectTo: user.role === "admin" ? "/admin" : "/",
+      message: "Đăng nhập thành công",
     });
 
     response.cookies.set("token", token);
