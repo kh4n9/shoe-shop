@@ -13,7 +13,7 @@ export const POST = async (req: NextRequest) => {
 
     if (!email || !password) {
       return NextResponse.json(
-        { error: "Invalid email or password" },
+        { error: "Email hoặc mật khẩu không hợp lệ" },
         { status: 400 }
       );
     }
@@ -21,14 +21,17 @@ export const POST = async (req: NextRequest) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Email không tồn tại" },
+        { status: 404 }
+      );
     }
 
     const validPassword = await bcrypt.compare(password, user.password);
 
     if (!validPassword) {
       return NextResponse.json(
-        { error: "Invalid email or password" },
+        { error: "Email hoặc mật khẩu không hợp lệ" },
         { status: 400 }
       );
     }
@@ -49,18 +52,14 @@ export const POST = async (req: NextRequest) => {
       .setExpirationTime("1h")
       .sign(secretKey);
 
-    if (user.role === "admin") {
-      const res = NextResponse.redirect(new URL("/admin", req.nextUrl));
+    const response = NextResponse.json({
+      success: true,
+      message: "Đăng nhập thành công",
+    });
 
-      res.cookies.set("token", token);
+    response.cookies.set("token", token);
 
-      return res;
-    }
-    const res = NextResponse.redirect(new URL("/", req.nextUrl));
-
-    res.cookies.set("token", token);
-
-    return res;
+    return response;
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: "Server error" }, { status: 500 });

@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { SignJWT } from "jose";
 import { cookies } from "next/headers";
-import { connectToDatabase } from "@/lib/mongodb";
-import { User } from "@/models/User";
+import { connectDB } from "@/lib/mongodb";
+import User from "@/models/User";
 
 export async function POST(request: Request) {
   try {
@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     }
 
     // Connect to database
-    await connectToDatabase();
+    await connectDB();
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
@@ -52,7 +52,7 @@ export async function POST(request: Request) {
       .sign(secretKey);
 
     // Set cookie
-    cookies().set("token", token, {
+    (await cookies()).set("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
