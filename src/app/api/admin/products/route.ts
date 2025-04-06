@@ -10,7 +10,7 @@ export async function GET() {
   } catch (error) {
     console.log(error);
     return NextResponse.json(
-      { message: "Internal Server Error" },
+      { message: "Lỗi khi lấy sản phẩm" },
       { status: 500 }
     );
   }
@@ -19,21 +19,23 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     await connectDB();
-    const { name, description, price, image, category, brand } =
+    const { name, description, price, images, category, brand, sizes, colors } =
       await req.json();
     const product = await Product.create({
       name,
       description,
       price,
-      image,
+      images,
       category,
       brand,
+      sizes,
+      colors,
     });
     return NextResponse.json(product, { status: 201 });
   } catch (error) {
     console.log(error);
     return NextResponse.json(
-      { message: "Internal Server Error" },
+      { message: "Lỗi khi tạo sản phẩm" },
       { status: 500 }
     );
   }
