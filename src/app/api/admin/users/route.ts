@@ -1,16 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import Category from "@/models/Category";
 import { connectDB } from "@/lib/mongodb";
+import User from "@/models/User";
 
 export async function GET() {
   try {
     await connectDB();
-    const categories = await Category.find();
-    return NextResponse.json(categories, { status: 200 });
+    const users = await User.find();
+    return NextResponse.json(users);
   } catch (error) {
     console.log(error);
     return NextResponse.json(
-      { message: "Lỗi khi lấy danh mục" },
+      { message: "Lỗi khi lấy danh sách người dùng" },
       { status: 500 }
     );
   }
@@ -19,13 +19,13 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     await connectDB();
-    const { name, description } = await req.json();
-    const category = await Category.create({ name, description });
-    return NextResponse.json(category, { status: 201 });
+    const { name, email, password, role } = await req.json();
+    const user = await User.create({ name, email, password, role });
+    return NextResponse.json(user);
   } catch (error) {
     console.log(error);
     return NextResponse.json(
-      { message: "Lỗi khi tạo danh mục" },
+      { message: "Lỗi khi tạo người dùng" },
       { status: 500 }
     );
   }
