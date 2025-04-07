@@ -55,7 +55,7 @@ const HeaderComponent = () => {
             height={32}
           />
           <span className="self-center text-2xl font-semibold whitespace-nowrap">
-            Flowbite
+            Shoe Store
           </span>
         </Link>
         <div className="flex items-center md:order-2 space-x-3 md:space-x-0 rtl:space-x-reverse">
@@ -85,24 +85,22 @@ const HeaderComponent = () => {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
+              {/* nếu đăng nhập là admin thì hiển thị quản lý */}
+              {user?.role === "admin" && (
+                <DropdownMenuItem>
+                  <Link href="/admin" className="w-full">
+                    Quản lý
+                  </Link>
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem>
-                <a href="#" className="w-full">
-                  Dashboard
-                </a>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <a href="#" className="w-full">
-                  Settings
-                </a>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <a href="#" className="w-full">
-                  Earnings
-                </a>
+                <Link href="/profile" className="w-full">
+                  Thông tin tài khoản
+                </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout}>
-                Sign out
+                Đăng xuất
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -113,7 +111,7 @@ const HeaderComponent = () => {
             aria-controls="navbar-user"
             aria-expanded="false"
           >
-            <span className="sr-only">Open main menu</span>
+            <span className="sr-only">Mở menu chính</span>
             <svg
               className="w-5 h-5"
               aria-hidden="true"
@@ -137,45 +135,37 @@ const HeaderComponent = () => {
         >
           <ul className="flex flex-col font-medium p-4 md:p-0 mt-4 border border-gray-100 rounded-lg bg-gray-50 md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0 md:border-0 md:bg-white">
             <li>
-              <a
-                href="#"
+              <Link
+                href="/"
                 className="block py-2 px-3 text-white bg-blue-700 rounded-sm md:bg-transparent md:text-blue-700 md:p-0"
                 aria-current="page"
               >
-                Home
-              </a>
+                Trang chủ
+              </Link>
             </li>
             <li>
-              <a
+              <Link
                 href="#"
                 className="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0"
               >
-                About
-              </a>
+                Giới thiệu
+              </Link>
             </li>
             <li>
-              <a
+              <Link
                 href="#"
                 className="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0"
               >
-                Services
-              </a>
+                Dịch vụ
+              </Link>
             </li>
             <li>
-              <a
+              <Link
                 href="#"
                 className="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0"
               >
-                Pricing
-              </a>
-            </li>
-            <li>
-              <a
-                href="#"
-                className="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0"
-              >
-                Contact
-              </a>
+                Liên hệ
+              </Link>
             </li>
           </ul>
         </div>

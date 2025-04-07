@@ -19,12 +19,29 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     await connectDB();
-    const { userId, products, status, totalPrice } = await req.json();
+    const {
+      userId,
+      products,
+      status,
+      totalPrice,
+      name,
+      phone,
+      address,
+      email,
+      note,
+      paymentMethod,
+    } = await req.json();
     const order = await Order.create({
       userId,
       products,
       status,
       totalPrice,
+      name,
+      phone,
+      address,
+      email,
+      note,
+      paymentMethod,
     });
     return NextResponse.json(order);
   } catch (error) {

@@ -10,7 +10,13 @@ interface Order {
     color: string;
   }[];
   totalPrice: number;
-  status: "pending" | "confirmed" | "shipped" | "delivered" | "cancelled";
+  status:
+    | "pending"
+    | "confirmed"
+    | "shipped"
+    | "delivered"
+    | "cancelled"
+    | "completed";
   createdAt: string;
 }
 

@@ -6,6 +6,30 @@ const OrderSchema = new mongoose.Schema({
     ref: "User",
     required: true,
   },
+  name: {
+    type: String,
+    required: true,
+  },
+  phone: {
+    type: String,
+    required: true,
+  },
+  address: {
+    type: String,
+    required: true,
+  },
+  email: {
+    type: String,
+    required: true,
+  },
+  note: {
+    type: String,
+  },
+  paymentMethod: {
+    type: String,
+    enum: ["momo", "banking", "cod"],
+    default: "cod",
+  },
   products: [
     {
       productId: {
@@ -33,7 +57,14 @@ const OrderSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ["pending", "confirmed", "shipped", "delivered", "cancelled"],
+    enum: [
+      "pending",
+      "confirmed",
+      "shipped",
+      "delivered",
+      "cancelled",
+      "completed",
+    ],
     default: "pending",
   },
   createdAt: {
