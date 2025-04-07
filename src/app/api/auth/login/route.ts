@@ -49,7 +49,7 @@ export const POST = async (req: NextRequest) => {
 
     const token = await new SignJWT(payload)
       .setProtectedHeader({ alg: "HS256" })
-      .setExpirationTime("1h")
+      .setExpirationTime("24h")
       .sign(secretKey);
 
     const response = NextResponse.json({
