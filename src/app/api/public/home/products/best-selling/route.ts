@@ -13,11 +13,16 @@ interface ProductInOrder {
 export async function GET() {
   try {
     await connectDB();
-    const orders = await Order.find({ status: "completed" }).sort({});
-    const productIds = orders.map((order) =>
-      order.products.map((product: ProductInOrder) => product.productId)
-    );
-    console.log("PRODUCT IDS", productIds);
+    const orders = await Order.find({ status: "completed" }).sort({
+      createdAt: -1,
+    });
+    const productIds = [
+      ...new Set(
+        orders.flatMap((order) =>
+          order.products.map((product: ProductInOrder) => product.productId)
+        )
+      ),
+    ];
     const products = await Product.find({ _id: { $in: productIds } });
     return NextResponse.json(products);
   } catch (error) {

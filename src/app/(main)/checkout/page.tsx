@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { createOrder } from "@/services/public/order";
 import { toast } from "sonner";
+import { getMe } from "@/services/auth/me";
 
 interface CartItem {
   productId: string;
@@ -20,12 +21,20 @@ interface CartItem {
   quantity: number;
 }
 
+interface User {
+  _id: string;
+  name: string;
+  email: string;
+  role: string;
+}
+
 export default function CheckoutPage() {
   const router = useRouter();
   const [cartItems, setCartItems] = React.useState<CartItem[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [paymentMethod, setPaymentMethod] = React.useState("cod");
+  const [user, setUser] = React.useState<User | null>(null);
   const [formData, setFormData] = React.useState({
     fullName: "",
     email: "",
@@ -40,6 +49,26 @@ export default function CheckoutPage() {
     if (cart) {
       setCartItems(JSON.parse(cart));
     }
+
+    // Get user data
+    const fetchUser = async () => {
+      try {
+        const userData = await getMe();
+        if (userData.user) {
+          setUser(userData.user);
+          // Pre-fill form with user data
+          setFormData((prev) => ({
+            ...prev,
+            fullName: userData.user.name || "",
+            email: userData.user.email || "",
+          }));
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+
+    fetchUser();
     setIsLoading(false);
   }, []);
 
@@ -70,7 +99,12 @@ export default function CheckoutPage() {
     e.preventDefault();
 
     // Validate form
-    if (!formData.fullName || !formData.phone || !formData.address) {
+    if (
+      !formData.fullName ||
+      !formData.phone ||
+      !formData.address ||
+      !formData.email
+    ) {
       toast.error("Vui lòng điền đầy đủ thông tin giao hàng");
       return;
     }
@@ -80,21 +114,37 @@ export default function CheckoutPage() {
       return;
     }
 
+    if (!user) {
+      toast.error("Vui lòng đăng nhập để đặt hàng");
+      router.push("/login");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
+      // Calculate total price
+      const totalPrice = calculateTotal();
+
       // Prepare order data
       const orderData = {
-        items: cartItems.map((item) => ({
-          productId: item.productId,
-          quantity: item.quantity,
-          size: item.size,
-          color: item.color,
-        })),
-        shippingAddress: formData.address,
-        phone: formData.phone,
-        note: formData.note,
-        paymentMethod: paymentMethod as "cod" | "bank" | "momo",
+        order: {
+          userId: user._id,
+          name: formData.fullName,
+          email: formData.email,
+          phone: formData.phone,
+          address: formData.address,
+          note: formData.note,
+          paymentMethod: paymentMethod as "cod" | "bank" | "momo",
+          products: cartItems.map((item) => ({
+            productId: item.productId,
+            quantity: item.quantity,
+            size: item.size,
+            color: item.color,
+          })),
+          totalPrice: totalPrice,
+          status: "pending",
+        },
       };
 
       // Create order

@@ -3,6 +3,7 @@ import { getBrandById } from "@/services/public/home/brand";
 import { getCategoryById } from "@/services/public/home/category";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 
 interface Product {
   _id: string;
@@ -26,24 +27,79 @@ interface Category {
   description: string;
 }
 
-export default function ProductCard({ product }: { product: Product }) {
+interface ProductCardProps {
+  product: Product;
+  viewMode: "grid" | "list";
+}
+
+export default function ProductCard({ product, viewMode }: ProductCardProps) {
   const router = useRouter();
   const [brand, setBrand] = useState<Brand | null>(null);
-  useEffect(() => {
-    const fetchBrand = async () => {
-      const brand = await getBrandById(product.brand);
-      setBrand(brand);
-    };
-    fetchBrand();
-  }, [product.brand]);
   const [category, setCategory] = useState<Category | null>(null);
+
   useEffect(() => {
-    const fetchCategory = async () => {
-      const category = await getCategoryById(product.category);
-      setCategory(category);
+    const fetchData = async () => {
+      const [brandData, categoryData] = await Promise.all([
+        getBrandById(product.brand),
+        getCategoryById(product.category),
+      ]);
+      setBrand(brandData);
+      setCategory(categoryData);
     };
-    fetchCategory();
-  }, [product.category]);
+    fetchData();
+  }, [product.brand, product.category]);
+
+  if (viewMode === "list") {
+    return (
+      <div
+        onClick={() => router.push(`/products/${product._id}`)}
+        className="w-full bg-white border border-gray-200 rounded-lg shadow-sm flex flex-row h-48 cursor-pointer hover:shadow-lg transition-all duration-300"
+      >
+        <div className="relative w-48 h-full">
+          <Image
+            className="rounded-l-lg object-cover"
+            src={product.images[0]}
+            alt={product.name}
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          />
+        </div>
+        <div className="p-4 flex flex-col flex-grow">
+          <h5 className="text-xl font-semibold tracking-tight text-gray-900 line-clamp-2 mb-2">
+            {product.name}
+          </h5>
+          <div className="flex items-center gap-4 mb-2">
+            <span className="text-sm text-gray-500 font-bold">
+              {brand?.name.toUpperCase()}
+            </span>
+            <span className="text-sm text-gray-500 font-bold">
+              {category?.name.toUpperCase()}
+            </span>
+          </div>
+          <p className="text-gray-600 line-clamp-2 mb-4">
+            {product.description}
+          </p>
+          <div className="mt-auto flex items-center justify-between">
+            <span className="text-2xl font-bold text-gray-900">
+              {product.price.toLocaleString("vi-VN", {
+                style: "currency",
+                currency: "VND",
+              })}
+            </span>
+            <Button
+              onClick={(e) => {
+                e.stopPropagation();
+                router.push(`/products/${product._id}`);
+              }}
+            >
+              Chi tiết sản phẩm
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       onClick={() => router.push(`/products/${product._id}`)}
@@ -78,12 +134,14 @@ export default function ProductCard({ product }: { product: Product }) {
                 currency: "VND",
               })}
             </span>
-            <a
-              href={`/products/${product._id}`}
-              className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
+            <Button
+              onClick={(e) => {
+                e.stopPropagation();
+                router.push(`/products/${product._id}`);
+              }}
             >
               Chi tiết sản phẩm
-            </a>
+            </Button>
           </div>
         </div>
       </div>
