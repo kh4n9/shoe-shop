@@ -23,37 +23,32 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { deleteProduct, getProducts } from "@/services/admin/product";
-import { getCategories } from "@/services/admin/category";
-import { getBrands } from "@/services/admin/brand";
+import { getOrders, updateOrder } from "@/services/admin/order";
 import { useRouter } from "next/navigation";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
-interface Product {
+interface Order {
   _id: string;
-  name: string;
-  price: number;
-  description: string;
-  images: string[];
-  category: string;
-  brand: string;
-  sizes: string[];
-  colors: string[];
+  userId: string;
+  products: {
+    productId: string;
+    quantity: number;
+    size: string;
+    color: string;
+  }[];
+  totalPrice: number;
+  status: "pending" | "confirmed" | "shipped" | "delivered" | "cancelled";
+  createdAt: string;
 }
 
-interface Category {
-  _id: string;
-  name: string;
-}
-
-interface Brand {
-  _id: string;
-  name: string;
-}
-
-export default function ProductTable() {
-  const [data, setData] = React.useState<Product[]>([]);
-  const [categories, setCategories] = React.useState<Category[]>([]);
-  const [brands, setBrands] = React.useState<Brand[]>([]);
+export default function OrderTable() {
+  const [data, setData] = React.useState<Order[]>([]);
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -63,50 +58,40 @@ export default function ProductTable() {
   const router = useRouter();
 
   React.useEffect(() => {
-    getProducts().then((products) => setData(products));
-    getCategories().then((categories) => setCategories(categories));
-    getBrands().then((brands) => setBrands(brands));
+    getOrders().then((orders) => setData(orders));
   }, []);
 
-  const handleDelete = React.useCallback((id: string) => {
-    if (window.confirm("Bạn có chắc chắn muốn xóa sản phẩm này?")) {
-      deleteProduct(id).then(() => {
-        setData((prev) => prev.filter((product) => product._id !== id));
-      });
-    }
-  }, []);
-
-  const handleEdit = React.useCallback(
-    (id: string) => {
-      router.push(`/admin/products/edit/${id}`);
+  const handleStatusChange = React.useCallback(
+    async (id: string, newStatus: Order["status"]) => {
+      try {
+        await updateOrder(id, { status: newStatus });
+        setData((prev) =>
+          prev.map((order) =>
+            order._id === id ? { ...order, status: newStatus } : order
+          )
+        );
+      } catch (error) {
+        console.error("Error updating order status:", error);
+      }
     },
-    [router]
+    []
   );
 
-  // Map dữ liệu để thay thế id danh mục/brand thành tên (nếu có)
-  const mappedData = React.useMemo(() => {
-    return data.map((product) => {
-      const categoryName =
-        categories.find((c) => c._id === product.category)?.name || "";
-      const brandName = brands.find((b) => b._id === product.brand)?.name || "";
-      return {
-        ...product,
-        category: categoryName,
-        brand: brandName,
-      };
-    });
-  }, [data, categories, brands]);
-
-  const columns = React.useMemo<ColumnDef<Product>[]>(
+  const columns = React.useMemo<ColumnDef<Order>[]>(
     () => [
       {
-        accessorKey: "name",
-        header: "Tên sản phẩm",
+        accessorKey: "_id",
+        header: "Mã đơn hàng",
         cell: (info) => info.getValue(),
       },
       {
-        accessorKey: "price",
-        header: "Giá",
+        accessorKey: "userId",
+        header: "ID người dùng",
+        cell: (info) => info.getValue(),
+      },
+      {
+        accessorKey: "totalPrice",
+        header: "Tổng tiền",
         cell: (info) =>
           info.getValue<number>().toLocaleString("vi-VN", {
             style: "currency",
@@ -114,59 +99,68 @@ export default function ProductTable() {
           }),
       },
       {
-        accessorKey: "description",
-        header: "Mô tả",
-        cell: (info) => {
-          const text = info.getValue<string>();
-          return text.length > 50 ? text.slice(0, 20) + "..." : text;
+        accessorKey: "status",
+        header: "Trạng thái",
+        cell: ({ row }) => {
+          const order = row.original;
+          return (
+            <Select
+              value={order.status}
+              onValueChange={(value: Order["status"]) =>
+                handleStatusChange(order._id, value)
+              }
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Chọn trạng thái" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="pending">Chờ xác nhận</SelectItem>
+                <SelectItem value="confirmed">Đã xác nhận</SelectItem>
+                <SelectItem value="shipped">Đang giao</SelectItem>
+                <SelectItem value="delivered">Đã giao</SelectItem>
+                <SelectItem value="cancelled">Đã hủy</SelectItem>
+              </SelectContent>
+            </Select>
+          );
         },
       },
       {
-        accessorKey: "category",
-        header: "Danh mục",
-        cell: (info) => info.getValue(),
-      },
-      {
-        accessorKey: "brand",
-        header: "Thương hiệu",
-        cell: (info) => info.getValue(),
-      },
-      {
-        accessorKey: "sizes",
-        header: "Kích cỡ",
-        cell: (info) => info.getValue<string[]>().join(", "),
-      },
-      {
-        accessorKey: "colors",
-        header: "Màu sắc",
-        cell: (info) => info.getValue<string[]>().join(", "),
+        accessorKey: "createdAt",
+        header: "Ngày tạo",
+        cell: (info) => {
+          const date = new Date(info.getValue<string>());
+          return date.toLocaleDateString("vi-VN", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+        },
       },
       {
         id: "actions",
         header: "Hành động",
         cell: ({ row }) => {
-          const product = row.original;
+          const order = row.original;
           return (
             <div className="flex gap-2">
-              <Button variant="outline" onClick={() => handleEdit(product._id)}>
-                Sửa
-              </Button>
               <Button
-                variant="destructive"
-                onClick={() => handleDelete(product._id)}
+                variant="outline"
+                onClick={() => router.push(`/admin/orders/${order._id}`)}
               >
-                Xóa
+                Chi tiết
               </Button>
             </div>
           );
         },
       },
     ],
-    [handleDelete, handleEdit]
+    [handleStatusChange, router]
   );
 
   const table = useReactTable({
-    data: mappedData,
+    data,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -186,19 +180,13 @@ export default function ProductTable() {
     <div className="w-full bg-white rounded-lg shadow-md p-4">
       <div className="flex items-center py-4 justify-between">
         <Input
-          placeholder="Tìm kiếm tên sản phẩm..."
+          placeholder="Tìm kiếm mã đơn hàng..."
           className="max-w-sm"
-          value={(table.getColumn("name")?.getFilterValue() as string) || ""}
+          value={(table.getColumn("_id")?.getFilterValue() as string) || ""}
           onChange={(event) =>
-            table.getColumn("name")?.setFilterValue(event.target.value)
+            table.getColumn("_id")?.setFilterValue(event.target.value)
           }
         />
-        <Button
-          variant="outline"
-          onClick={() => router.push("/admin/products/create")}
-        >
-          Thêm sản phẩm
-        </Button>
       </div>
       <div className="rounded-md border border-gray-200">
         <Table>
@@ -250,7 +238,7 @@ export default function ProductTable() {
                   colSpan={columns.length}
                   className="h-24 text-center text-gray-500"
                 >
-                  Không có sản phẩm nào.
+                  Không có đơn hàng nào.
                 </TableCell>
               </TableRow>
             )}
@@ -258,7 +246,7 @@ export default function ProductTable() {
         </Table>
         <div className="flex items-center justify-between px-4 py-4">
           <div className="flex-1 text-sm text-gray-500">
-            {table.getFilteredRowModel().rows.length} sản phẩm
+            {table.getFilteredRowModel().rows.length} đơn hàng
           </div>
           <div className="flex items-center space-x-2">
             <Button
