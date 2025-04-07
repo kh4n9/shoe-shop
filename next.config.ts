@@ -8,6 +8,7 @@ const nextConfig: NextConfig = {
       { hostname: "media.discordapp.net" },
       { hostname: "cdn.discordapp.com" },
       { hostname: "flowbite.com" },
+      { hostname: "images.unsplash.com" },
     ],
   },
 };

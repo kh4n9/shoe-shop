@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { ShoppingCart } from "lucide-react";
 
 const HeaderComponent = () => {
   const [user, setUser] = useState<{
@@ -24,12 +25,19 @@ const HeaderComponent = () => {
     name: string;
     email: string;
   } | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
     const fetchUser = async () => {
-      const response = await getMe();
-      setUser(response.user);
+      try {
+        const response = await getMe();
+        setUser(response.user);
+      } catch (error) {
+        console.error("Lỗi khi tải thông tin người dùng:", error);
+      } finally {
+        setIsLoading(false);
+      }
     };
     fetchUser();
   }, []);
@@ -50,60 +58,75 @@ const HeaderComponent = () => {
           <Image
             src="https://flowbite.com/docs/images/logo.svg"
             className="h-8"
-            alt="Flowbite Logo"
+            alt="Logo"
             width={32}
             height={32}
           />
           <span className="self-center text-2xl font-semibold whitespace-nowrap">
-            Shoe Store
+            Cửa hàng giày
           </span>
         </Link>
-        <div className="flex items-center md:order-2 space-x-3 md:space-x-0 rtl:space-x-reverse">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage
-                    src="https://flowbite.com/docs/images/people/profile-picture-3.jpg"
-                    alt="User avatar"
-                  />
-                  <AvatarFallback>
-                    {user?.name?.charAt(0) || "U"}
-                  </AvatarFallback>
-                </Avatar>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="end" forceMount>
-              <DropdownMenuLabel className="font-normal">
-                <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">
-                    {user?.name}
-                  </p>
-                  <p className="text-xs leading-none text-muted-foreground">
-                    {user?.email}
-                  </p>
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {/* nếu đăng nhập là admin thì hiển thị quản lý */}
-              {user?.role === "admin" && (
+        <div className="flex items-center gap-4 md:order-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => router.push("/cart")}
+            className="relative"
+          >
+            <ShoppingCart className="h-5 w-5" />
+          </Button>
+          {!isLoading && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="relative h-8 w-8 rounded-full"
+                >
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage
+                      src="https://flowbite.com/docs/images/people/profile-picture-3.jpg"
+                      alt="Ảnh đại diện"
+                    />
+                    <AvatarFallback>
+                      {user?.name?.charAt(0) || "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">
+                      {user?.name}
+                    </p>
+                    <p className="text-xs leading-none text-muted-foreground">
+                      {user?.email}
+                    </p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {user?.role === "admin" && (
+                  <DropdownMenuItem>
+                    <Link href="/admin" className="w-full">
+                      Quản lý
+                    </Link>
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem>
-                  <Link href="/admin" className="w-full">
-                    Quản lý
+                  <Link href="/profile" className="w-full">
+                    Thông tin tài khoản
                   </Link>
                 </DropdownMenuItem>
-              )}
-              <DropdownMenuItem>
-                <Link href="/profile" className="w-full">
-                  Thông tin tài khoản
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout}>
-                Đăng xuất
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                <DropdownMenuItem asChild>
+                  <Link href="/orders">Lịch sử đơn hàng</Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout}>
+                  Đăng xuất
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
           <Button
             data-collapse-toggle="navbar-user"
             type="button"
@@ -137,15 +160,22 @@ const HeaderComponent = () => {
             <li>
               <Link
                 href="/"
-                className="block py-2 px-3 text-white bg-blue-700 rounded-sm md:bg-transparent md:text-blue-700 md:p-0"
-                aria-current="page"
+                className="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0"
               >
                 Trang chủ
               </Link>
             </li>
             <li>
               <Link
-                href="#"
+                href="/products"
+                className="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0"
+              >
+                Sản phẩm
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/about"
                 className="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0"
               >
                 Giới thiệu
@@ -153,15 +183,7 @@ const HeaderComponent = () => {
             </li>
             <li>
               <Link
-                href="#"
-                className="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0"
-              >
-                Dịch vụ
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="#"
+                href="/contact"
                 className="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0"
               >
                 Liên hệ
