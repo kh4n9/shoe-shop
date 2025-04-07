@@ -4,9 +4,9 @@ import { useState } from "react";
 const ResetPasswordPage = ({
   searchParams,
 }: {
-  searchParams: { token: string };
+  searchParams: { [key: string]: string | string[] | undefined };
 }) => {
-  const token = searchParams.token;
+  const token = searchParams.token as string;
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
