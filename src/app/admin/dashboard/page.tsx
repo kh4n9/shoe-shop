@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getOrders } from "@/services/admin/order";
 import { getUsers } from "@/services/admin/user";
 import { useEffect, useState } from "react";
+import Chart from "@/app/admin/dashboard/Chart";
 
 interface Order {
   id: string;
@@ -138,7 +139,7 @@ export default function Dashboard() {
             <CardTitle>Khách hàng mới trong tháng</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">{currentUserCount}</p>
+            <p className="text-2xl font-bold">{currentUserCount} khách hàng</p>
             <p className="text-sm text-gray-500">
               {prevUserCount} khách hàng tháng trước (
               {userGrowth === "N/A"
@@ -149,6 +150,7 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
+      <Chart />
     </div>
   );
 }

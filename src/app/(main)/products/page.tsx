@@ -2,7 +2,7 @@
 
 import { getProducts } from "@/services/public/home/product";
 import { useEffect, useState } from "react";
-import ProductCard from "@/components/ProductCard";
+import ProductCard from "@/app/(main)/products/product-card";
 
 interface Product {
   _id: string;
