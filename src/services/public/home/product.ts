@@ -28,3 +28,16 @@ export const getProductById = async (id: string) => {
     throw error;
   }
 };
+
+export const getBestSellingProducts = async () => {
+  try {
+    const response = await axios.get(
+      `${process.env.NEXT_PUBLIC_API_URL}/public/home/products/best-selling`
+    );
+    console.log("RESPONSE", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching best selling products:", error);
+    throw error;
+  }
+};

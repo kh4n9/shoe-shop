@@ -43,7 +43,13 @@ interface Order {
     color: string;
   }[];
   totalPrice: number;
-  status: "pending" | "confirmed" | "shipped" | "delivered" | "cancelled";
+  status:
+    | "pending"
+    | "confirmed"
+    | "shipped"
+    | "delivered"
+    | "cancelled"
+    | "completed";
   createdAt: string;
 }
 
@@ -119,6 +125,7 @@ export default function OrderTable() {
                 <SelectItem value="shipped">Đang giao</SelectItem>
                 <SelectItem value="delivered">Đã giao</SelectItem>
                 <SelectItem value="cancelled">Đã hủy</SelectItem>
+                <SelectItem value="completed">Đã hoàn thành</SelectItem>
               </SelectContent>
             </Select>
           );

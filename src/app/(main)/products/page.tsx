@@ -2,7 +2,7 @@
 
 import { getProducts } from "@/services/public/home/product";
 import { useEffect, useState } from "react";
-import ProductCard from "@/app/(main)/products/product-card";
+import ProductCard from "@/components/product-card";
 
 interface Product {
   _id: string;
@@ -11,6 +11,7 @@ interface Product {
   images: string[];
   category: string;
   brand: string;
+  description: string;
 }
 
 export default function Products() {
@@ -20,7 +21,6 @@ export default function Products() {
     const fetchProducts = async () => {
       try {
         const response = await getProducts();
-        console.log(response);
         setProducts(response);
       } catch (error) {
         console.error("Error fetching products:", error);
