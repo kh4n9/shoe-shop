@@ -1,9 +1,16 @@
 import axios from "axios";
 
 interface Order {
-  id: string;
-  total: number;
-  status: string;
+  _id: string;
+  userId: string;
+  products: {
+    productId: string;
+    quantity: number;
+    size: string;
+    color: string;
+  }[];
+  totalPrice: number;
+  status: "pending" | "confirmed" | "shipped" | "delivered" | "cancelled";
   createdAt: string;
 }
 
@@ -17,7 +24,7 @@ export const getOrderById = async (id: string) => {
   return response.data;
 };
 
-export const updateOrder = async (id: string, order: Order) => {
+export const updateOrder = async (id: string, order: Partial<Order>) => {
   const response = await axios.put(`/api/admin/orders/${id}`, order);
   return response.data;
 };

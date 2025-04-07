@@ -23,37 +23,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { deleteProduct, getProducts } from "@/services/admin/product";
-import { getCategories } from "@/services/admin/category";
-import { getBrands } from "@/services/admin/brand";
+import { getUsers, deleteUser } from "@/services/admin/user";
 import { useRouter } from "next/navigation";
 
-interface Product {
+interface User {
   _id: string;
   name: string;
-  price: number;
-  description: string;
-  images: string[];
-  category: string;
-  brand: string;
-  sizes: string[];
-  colors: string[];
+  email: string;
+  role: "admin" | "user";
+  createdAt: string;
+  password?: string;
 }
 
-interface Category {
-  _id: string;
-  name: string;
-}
-
-interface Brand {
-  _id: string;
-  name: string;
-}
-
-export default function ProductTable() {
-  const [data, setData] = React.useState<Product[]>([]);
-  const [categories, setCategories] = React.useState<Category[]>([]);
-  const [brands, setBrands] = React.useState<Brand[]>([]);
+export default function UserTable() {
+  const [data, setData] = React.useState<User[]>([]);
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -63,97 +46,74 @@ export default function ProductTable() {
   const router = useRouter();
 
   React.useEffect(() => {
-    getProducts().then((products) => setData(products));
-    getCategories().then((categories) => setCategories(categories));
-    getBrands().then((brands) => setBrands(brands));
+    getUsers().then((users) => setData(users));
   }, []);
 
-  const handleDelete = React.useCallback((id: string) => {
-    if (window.confirm("Bạn có chắc chắn muốn xóa sản phẩm này?")) {
-      deleteProduct(id).then(() => {
-        setData((prev) => prev.filter((product) => product._id !== id));
-      });
+  const handleDelete = React.useCallback(async (id: string) => {
+    if (window.confirm("Bạn có chắc chắn muốn xóa người dùng này?")) {
+      try {
+        await deleteUser(id);
+        setData((prev) => prev.filter((user) => user._id !== id));
+      } catch (error) {
+        console.error("Error deleting user:", error);
+        alert("Không thể xóa người dùng này vì họ có đơn hàng hoặc giỏ hàng.");
+      }
     }
   }, []);
 
-  const handleEdit = React.useCallback(
-    (id: string) => {
-      router.push(`/admin/products/edit/${id}`);
-    },
-    [router]
-  );
-
-  // Map dữ liệu để thay thế id danh mục/brand thành tên (nếu có)
-  const mappedData = React.useMemo(() => {
-    return data.map((product) => {
-      const categoryName =
-        categories.find((c) => c._id === product.category)?.name || "";
-      const brandName = brands.find((b) => b._id === product.brand)?.name || "";
-      return {
-        ...product,
-        category: categoryName,
-        brand: brandName,
-      };
-    });
-  }, [data, categories, brands]);
-
-  const columns = React.useMemo<ColumnDef<Product>[]>(
+  const columns = React.useMemo<ColumnDef<User>[]>(
     () => [
       {
-        accessorKey: "name",
-        header: "Tên sản phẩm",
+        accessorKey: "_id",
+        header: "ID",
         cell: (info) => info.getValue(),
       },
       {
-        accessorKey: "price",
-        header: "Giá",
-        cell: (info) =>
-          info.getValue<number>().toLocaleString("vi-VN", {
-            style: "currency",
-            currency: "VND",
-          }),
+        accessorKey: "name",
+        header: "Tên",
+        cell: (info) => info.getValue(),
       },
       {
-        accessorKey: "description",
-        header: "Mô tả",
+        accessorKey: "email",
+        header: "Email",
+        cell: (info) => info.getValue(),
+      },
+      {
+        accessorKey: "role",
+        header: "Vai trò",
         cell: (info) => {
-          const text = info.getValue<string>();
-          return text.length > 50 ? text.slice(0, 20) + "..." : text;
+          const role = info.getValue<string>();
+          return role === "admin" ? "Quản trị viên" : "Người dùng";
         },
       },
       {
-        accessorKey: "category",
-        header: "Danh mục",
-        cell: (info) => info.getValue(),
-      },
-      {
-        accessorKey: "brand",
-        header: "Thương hiệu",
-        cell: (info) => info.getValue(),
-      },
-      {
-        accessorKey: "sizes",
-        header: "Kích cỡ",
-        cell: (info) => info.getValue<string[]>().join(", "),
-      },
-      {
-        accessorKey: "colors",
-        header: "Màu sắc",
-        cell: (info) => info.getValue<string[]>().join(", "),
+        accessorKey: "createdAt",
+        header: "Ngày tạo",
+        cell: (info) => {
+          const date = new Date(info.getValue<string>());
+          return date.toLocaleDateString("vi-VN", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          });
+        },
       },
       {
         id: "actions",
         header: "Hành động",
         cell: ({ row }) => {
-          const product = row.original;
+          const user = row.original;
           return (
             <div className="flex gap-2">
-              <Button variant="outline" onClick={() => handleEdit(product._id)}>
-                Sửa
+              <Button
+                variant="outline"
+                onClick={() => router.push(`/admin/users/${user._id}`)}
+              >
+                Chi tiết
               </Button>
               <Button
                 variant="destructive"
-                onClick={() => handleDelete(product._id)}
+                onClick={() => handleDelete(user._id)}
               >
                 Xóa
               </Button>
@@ -162,11 +122,11 @@ export default function ProductTable() {
         },
       },
     ],
-    [handleDelete, handleEdit]
+    [handleDelete, router]
   );
 
   const table = useReactTable({
-    data: mappedData,
+    data,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -186,7 +146,7 @@ export default function ProductTable() {
     <div className="w-full bg-white rounded-lg shadow-md p-4">
       <div className="flex items-center py-4 justify-between">
         <Input
-          placeholder="Tìm kiếm tên sản phẩm..."
+          placeholder="Tìm kiếm người dùng..."
           className="max-w-sm"
           value={(table.getColumn("name")?.getFilterValue() as string) || ""}
           onChange={(event) =>
@@ -195,9 +155,9 @@ export default function ProductTable() {
         />
         <Button
           variant="outline"
-          onClick={() => router.push("/admin/products/create")}
+          onClick={() => router.push("/admin/users/create")}
         >
-          Thêm sản phẩm
+          Thêm người dùng
         </Button>
       </div>
       <div className="rounded-md border border-gray-200">
@@ -250,7 +210,7 @@ export default function ProductTable() {
                   colSpan={columns.length}
                   className="h-24 text-center text-gray-500"
                 >
-                  Không có sản phẩm nào.
+                  Không có người dùng nào.
                 </TableCell>
               </TableRow>
             )}
@@ -258,7 +218,7 @@ export default function ProductTable() {
         </Table>
         <div className="flex items-center justify-between px-4 py-4">
           <div className="flex-1 text-sm text-gray-500">
-            {table.getFilteredRowModel().rows.length} sản phẩm
+            {table.getFilteredRowModel().rows.length} người dùng
           </div>
           <div className="flex items-center space-x-2">
             <Button

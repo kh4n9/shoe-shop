@@ -1,10 +1,13 @@
 import axios from "axios";
 
 interface User {
+  _id?: string;
   name: string;
   email: string;
   password: string;
-  role: string;
+  role: "admin" | "user";
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export const getUsers = async () => {
@@ -29,7 +32,7 @@ export const createUser = async (user: User) => {
 
 export const updateUser = async (user: User) => {
   try {
-    const response = await axios.put("/api/admin/users", user);
+    const response = await axios.put(`/api/admin/users/${user._id}`, user);
     return response.data;
   } catch (error) {
     console.error("Error updating user:", error);
@@ -37,11 +40,9 @@ export const updateUser = async (user: User) => {
   }
 };
 
-export const deleteUser = async (user: User) => {
+export const deleteUser = async (id: string) => {
   try {
-    const response = await axios.delete("/api/admin/users", {
-      data: user,
-    });
+    const response = await axios.delete(`/api/admin/users/${id}`);
     return response.data;
   } catch (error) {
     console.error("Error deleting user:", error);
